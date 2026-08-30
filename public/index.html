@@ -59,6 +59,18 @@
           <div class="result-type" id="result-type"></div>
           <div class="result-text" id="result-text"></div>
           <div class="result-by" id="result-by"></div>
+          
+          <!-- Cronômetro -->
+          <div id="timer-container" class="timer-container hidden">
+            <div class="timer-label">⏱ Tempo restante</div>
+            <div id="timer-display" class="timer-display">00:00</div>
+            <div class="timer-bar-bg">
+              <div id="timer-bar" class="timer-bar"></div>
+            </div>
+          </div>
+
+          <!-- Botão Gozou -->
+          <button id="cum-btn" class="cum-btn">💦 GOZOU!</button>
         </div>
       </section>
 
@@ -71,6 +83,39 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Overlay de animação de gozada -->
+  <div id="cum-overlay" class="cum-overlay hidden">
+    <div class="cum-scene">
+      <div class="penis-container">
+        <div class="penis-shaft">
+          <div class="penis-head"></div>
+          <div class="veins"></div>
+        </div>
+        <div class="balls">
+          <div class="ball left"></div>
+          <div class="ball right"></div>
+        </div>
+      </div>
+      <div class="cum-streams">
+        <div class="stream s1"></div>
+        <div class="stream s2"></div>
+        <div class="stream s3"></div>
+        <div class="stream s4"></div>
+        <div class="stream s5"></div>
+        <div class="stream s6"></div>
+        <div class="stream s7"></div>
+      </div>
+      <div class="cum-drops">
+        <div class="drop d1"></div>
+        <div class="drop d2"></div>
+        <div class="drop d3"></div>
+        <div class="drop d4"></div>
+        <div class="drop d5"></div>
+      </div>
+      <div class="cum-text" id="cum-text">GOZOU! 💦</div>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
