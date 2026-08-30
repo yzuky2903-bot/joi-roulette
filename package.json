@@ -1,6 +1,7 @@
 {
   "name": "joi-roulette-casal",
   "version": "1.0.0",
+  "description": "Roleta JOI compartilhada com chat para casal",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
