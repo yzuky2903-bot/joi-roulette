@@ -51,23 +51,44 @@
         </div>
 
         <div class="spin-buttons">
-          <button id="spin-male" class="spin-btn male">Girar (Ele)</button>
-          <button id="spin-female" class="spin-btn female">Girar (Ela)</button>
+          <button id="spin-btn" class="spin-btn both">🎡 Girar para os Dois</button>
+        </div>
+
+        <div class="auto-spin-row">
+          <label class="auto-spin-toggle">
+            <input type="checkbox" id="auto-spin-check" checked>
+            <span>Auto-girar quando os dois terminarem</span>
+          </label>
         </div>
 
         <div id="result-box" class="result-box hidden">
-          <div class="result-type" id="result-type"></div>
-          <div class="result-text" id="result-text"></div>
-          <div class="result-by" id="result-by"></div>
-          
-          <!-- Cronômetro -->
-          <div id="timer-container" class="timer-container hidden">
-            <div class="timer-label">⏱ Tempo restante</div>
-            <div id="timer-display" class="timer-display">00:00</div>
-            <div class="timer-bar-bg">
-              <div id="timer-bar" class="timer-bar"></div>
+          <!-- Desafio ELE -->
+          <div class="challenge-card male-card">
+            <div class="challenge-header">♂ Ordem para ELE</div>
+            <div class="challenge-text" id="male-text"></div>
+            <div class="timer-block">
+              <div class="timer-display" id="male-timer">00:00</div>
+              <div class="timer-bar-bg">
+                <div class="timer-bar" id="male-bar"></div>
+              </div>
+              <div class="side-status" id="male-status"></div>
             </div>
           </div>
+
+          <!-- Desafio ELA -->
+          <div class="challenge-card female-card">
+            <div class="challenge-header">♀ Ordem para ELA</div>
+            <div class="challenge-text" id="female-text"></div>
+            <div class="timer-block">
+              <div class="timer-display" id="female-timer">00:00</div>
+              <div class="timer-bar-bg">
+                <div class="timer-bar" id="female-bar"></div>
+              </div>
+              <div class="side-status" id="female-status"></div>
+            </div>
+          </div>
+
+          <div class="result-by" id="result-by"></div>
 
           <!-- Botão Gozou -->
           <button id="cum-btn" class="cum-btn">💦 GOZOU!</button>

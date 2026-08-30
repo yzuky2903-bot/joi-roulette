@@ -4,11 +4,20 @@ let currentName = '';
 let currentGender = 'male';
 let currentRoom = '';
 let isSpinning = false;
-let timerInterval = null;
-let timerEndTime = 0;
-let totalDuration = 0;
 
-// Elementos
+// Dual timers state
+let maleInterval = null;
+let femaleInterval = null;
+let maleEndTime = 0;
+let femaleEndTime = 0;
+let maleTotal = 0;
+let femaleTotal = 0;
+let maleDone = false;
+let femaleDone = false;
+let reportedMale = false;
+let reportedFemale = false;
+
+// Elements
 const loginScreen = document.getElementById('login-screen');
 const gameScreen = document.getElementById('game-screen');
 const nameInput = document.getElementById('name-input');
@@ -17,23 +26,26 @@ const joinBtn = document.getElementById('join-btn');
 const roomCodeDisplay = document.getElementById('room-code-display');
 const usersList = document.getElementById('users-list');
 const wheel = document.getElementById('wheel');
-const spinMaleBtn = document.getElementById('spin-male');
-const spinFemaleBtn = document.getElementById('spin-female');
+const spinBtn = document.getElementById('spin-btn');
 const resultBox = document.getElementById('result-box');
-const resultType = document.getElementById('result-type');
-const resultText = document.getElementById('result-text');
+const maleText = document.getElementById('male-text');
+const femaleText = document.getElementById('female-text');
 const resultBy = document.getElementById('result-by');
+const maleTimerEl = document.getElementById('male-timer');
+const femaleTimerEl = document.getElementById('female-timer');
+const maleBar = document.getElementById('male-bar');
+const femaleBar = document.getElementById('female-bar');
+const maleStatus = document.getElementById('male-status');
+const femaleStatus = document.getElementById('female-status');
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
-const timerContainer = document.getElementById('timer-container');
-const timerDisplay = document.getElementById('timer-display');
-const timerBar = document.getElementById('timer-bar');
 const cumBtn = document.getElementById('cum-btn');
 const cumOverlay = document.getElementById('cum-overlay');
 const cumText = document.getElementById('cum-text');
+const autoSpinCheck = document.getElementById('auto-spin-check');
 
-// Entrar na sala
+// ===== LOGIN =====
 joinBtn.addEventListener('click', () => {
   const name = nameInput.value.trim();
   const room = roomInput.value.trim().toUpperCase();
@@ -55,18 +67,18 @@ joinBtn.addEventListener('click', () => {
   gameScreen.classList.remove('hidden');
 });
 
-// Atualização da sala
 socket.on('room-update', (data) => {
   usersList.textContent = data.users.map(u => `${u.name} (${u.gender === 'male' ? '♂' : '♀'})`).join(' • ');
-  
-  // Carrega chat existente
+  if (typeof data.autoSpin === 'boolean') {
+    autoSpinCheck.checked = data.autoSpin;
+  }
   if (data.chat && data.chat.length > 0) {
     chatMessages.innerHTML = '';
     data.chat.forEach(msg => addChatMessage(msg));
   }
 });
 
-// Chat
+// ===== CHAT =====
 function sendMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
@@ -79,16 +91,14 @@ chatInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMessage();
 });
 
-socket.on('chat-message', (msg) => {
-  addChatMessage(msg);
-});
+socket.on('chat-message', (msg) => addChatMessage(msg));
 
 function addChatMessage(msg) {
   const div = document.createElement('div');
   div.className = `chat-msg ${msg.gender || 'system'}`;
   if (msg.name === currentName) div.classList.add('own');
   if (msg.system) div.classList.add('system');
-  
+
   if (msg.system) {
     div.innerHTML = `<div>${msg.text}</div>`;
   } else {
@@ -103,33 +113,26 @@ function addChatMessage(msg) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Roleta
-spinMaleBtn.addEventListener('click', () => {
+// ===== SPIN =====
+spinBtn.addEventListener('click', () => {
   if (isSpinning) return;
-  socket.emit('spin', { type: 'male' });
-});
-
-spinFemaleBtn.addEventListener('click', () => {
-  if (isSpinning) return;
-  socket.emit('spin', { type: 'female' });
+  socket.emit('spin');
 });
 
 socket.on('spin-start', (data) => {
   isSpinning = true;
-  spinMaleBtn.disabled = true;
-  spinFemaleBtn.disabled = true;
+  spinBtn.disabled = true;
   resultBox.classList.add('hidden');
-  stopTimer();
-  timerContainer.classList.add('hidden');
+  stopAllTimers();
+  maleStatus.textContent = '';
+  femaleStatus.textContent = '';
 
-  // Animação de giro
   const extraSpins = 5 + Math.random() * 3;
   const randomDegree = Math.floor(Math.random() * 360);
   const totalRotation = extraSpins * 360 + randomDegree;
 
   wheel.style.transition = 'none';
   wheel.style.transform = 'rotate(0deg)';
-  
   void wheel.offsetWidth;
 
   wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
@@ -138,115 +141,188 @@ socket.on('spin-start', (data) => {
 
 socket.on('spin-result', (data) => {
   isSpinning = false;
-  spinMaleBtn.disabled = false;
-  spinFemaleBtn.disabled = false;
+  spinBtn.disabled = false;
 
-  resultType.textContent = data.type === 'male' ? 'Ordem para ELE ♂' : 'Ordem para ELA ♀';
-  resultText.textContent = data.result;
+  maleText.textContent = data.male.text;
+  femaleText.textContent = data.female.text;
   resultBy.textContent = `Girado por ${data.spunBy} • ${data.time}`;
   resultBox.classList.remove('hidden');
+
+  // Reset visual states
+  maleTimerEl.classList.remove('warning', 'danger', 'done');
+  femaleTimerEl.classList.remove('warning', 'danger', 'done');
+  maleBar.classList.remove('warning', 'danger', 'done');
+  femaleBar.classList.remove('warning', 'danger', 'done');
+  maleStatus.textContent = '';
+  femaleStatus.textContent = '';
 });
 
-// ===== TIMER =====
+// ===== TIMERS =====
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function startTimer(duration, startedAt) {
-  stopTimer();
-  totalDuration = duration;
-  timerEndTime = (startedAt || Date.now()) + duration * 1000;
-  
-  timerContainer.classList.remove('hidden');
-  timerDisplay.classList.remove('warning', 'danger');
-  timerBar.classList.remove('warning', 'danger');
-  
-  updateTimer();
-  timerInterval = setInterval(updateTimer, 100);
+function stopAllTimers() {
+  if (maleInterval) { clearInterval(maleInterval); maleInterval = null; }
+  if (femaleInterval) { clearInterval(femaleInterval); femaleInterval = null; }
+  maleDone = false;
+  femaleDone = false;
+  reportedMale = false;
+  reportedFemale = false;
 }
 
-function updateTimer() {
-  const now = Date.now();
-  const remaining = Math.max(0, (timerEndTime - now) / 1000);
-  const pct = totalDuration > 0 ? (remaining / totalDuration) * 100 : 0;
-  
-  timerDisplay.textContent = formatTime(remaining);
-  timerBar.style.width = pct + '%';
-  
-  if (remaining <= 5 && remaining > 0) {
-    timerDisplay.classList.add('danger');
-    timerDisplay.classList.remove('warning');
-    timerBar.classList.add('danger');
-    timerBar.classList.remove('warning');
-  } else if (remaining <= 10) {
-    timerDisplay.classList.add('warning');
-    timerDisplay.classList.remove('danger');
-    timerBar.classList.add('warning');
-    timerBar.classList.remove('danger');
+function startDualTimers(data) {
+  stopAllTimers();
+
+  maleTotal = data.maleDuration;
+  femaleTotal = data.femaleDuration;
+  maleEndTime = (data.startedAt || Date.now()) + data.maleDuration * 1000;
+  femaleEndTime = (data.startedAt || Date.now()) + data.femaleDuration * 1000;
+  maleDone = data.maleDone || false;
+  femaleDone = data.femaleDone || false;
+  reportedMale = maleDone;
+  reportedFemale = femaleDone;
+
+  if (!maleDone) {
+    updateMaleTimer();
+    maleInterval = setInterval(updateMaleTimer, 100);
   } else {
-    timerDisplay.classList.remove('warning', 'danger');
-    timerBar.classList.remove('warning', 'danger');
+    markSideDone('male');
   }
-  
+
+  if (!femaleDone) {
+    updateFemaleTimer();
+    femaleInterval = setInterval(updateFemaleTimer, 100);
+  } else {
+    markSideDone('female');
+  }
+}
+
+function updateMaleTimer() {
+  const remaining = Math.max(0, (maleEndTime - Date.now()) / 1000);
+  const pct = maleTotal > 0 ? (remaining / maleTotal) * 100 : 0;
+
+  maleTimerEl.textContent = formatTime(remaining);
+  maleBar.style.width = pct + '%';
+
+  applyTimerStyle(maleTimerEl, maleBar, remaining);
+
+  if (remaining <= 0 && !reportedMale) {
+    reportedMale = true;
+    markSideDone('male');
+    socket.emit('timer-side-done', { side: 'male' });
+    if (maleInterval) { clearInterval(maleInterval); maleInterval = null; }
+  }
+}
+
+function updateFemaleTimer() {
+  const remaining = Math.max(0, (femaleEndTime - Date.now()) / 1000);
+  const pct = femaleTotal > 0 ? (remaining / femaleTotal) * 100 : 0;
+
+  femaleTimerEl.textContent = formatTime(remaining);
+  femaleBar.style.width = pct + '%';
+
+  applyTimerStyle(femaleTimerEl, femaleBar, remaining);
+
+  if (remaining <= 0 && !reportedFemale) {
+    reportedFemale = true;
+    markSideDone('female');
+    socket.emit('timer-side-done', { side: 'female' });
+    if (femaleInterval) { clearInterval(femaleInterval); femaleInterval = null; }
+  }
+}
+
+function applyTimerStyle(displayEl, barEl, remaining) {
+  displayEl.classList.remove('warning', 'danger', 'done');
+  barEl.classList.remove('warning', 'danger', 'done');
+
   if (remaining <= 0) {
-    stopTimer();
-    timerDisplay.textContent = '00:00';
-    timerBar.style.width = '0%';
-    socket.emit('timer-done');
+    displayEl.classList.add('done');
+    barEl.classList.add('done');
+  } else if (remaining <= 5) {
+    displayEl.classList.add('danger');
+    barEl.classList.add('danger');
+  } else if (remaining <= 10) {
+    displayEl.classList.add('warning');
+    barEl.classList.add('warning');
   }
 }
 
-function stopTimer() {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+function markSideDone(side) {
+  if (side === 'male') {
+    maleDone = true;
+    maleTimerEl.textContent = '00:00';
+    maleTimerEl.classList.add('done');
+    maleBar.classList.add('done');
+    maleBar.style.width = '0%';
+    maleStatus.textContent = '✓ Terminou';
+  } else {
+    femaleDone = true;
+    femaleTimerEl.textContent = '00:00';
+    femaleTimerEl.classList.add('done');
+    femaleBar.classList.add('done');
+    femaleBar.style.width = '0%';
+    femaleStatus.textContent = '✓ Terminou';
   }
 }
 
-socket.on('timer-start', (data) => {
-  startTimer(data.duration, data.startedAt);
+socket.on('timers-start', (data) => {
+  startDualTimers(data);
 });
 
-socket.on('timer-sync', (data) => {
-  if (data && data.duration) {
-    startTimer(data.duration, data.startedAt);
-  }
+socket.on('timers-sync', (data) => {
+  if (data) startDualTimers(data);
 });
 
-socket.on('timer-finished', () => {
-  stopTimer();
-  timerDisplay.textContent = '00:00';
-  timerBar.style.width = '0%';
-  timerDisplay.classList.add('danger');
+socket.on('timer-side-update', (data) => {
+  if (data.maleDone) markSideDone('male');
+  if (data.femaleDone) markSideDone('female');
 });
 
-// ===== GOZOU / CUM =====
+socket.on('both-timers-finished', () => {
+  addChatMessage({
+    system: true,
+    text: '✅ Os dois desafios terminaram!' + (autoSpinCheck.checked ? ' Roleta girando de novo em 2,5s…' : '')
+  });
+});
+
+// ===== AUTO-SPIN TOGGLE =====
+autoSpinCheck.addEventListener('change', () => {
+  socket.emit('toggle-auto-spin');
+});
+
+socket.on('auto-spin-changed', (data) => {
+  autoSpinCheck.checked = data.autoSpin;
+  addChatMessage({
+    system: true,
+    text: data.autoSpin ? '🔄 Auto-giro ATIVADO' : '⏸️ Auto-giro DESATIVADO'
+  });
+});
+
+// ===== GOZOU =====
 cumBtn.addEventListener('click', () => {
   socket.emit('cum');
 });
 
 socket.on('cum-event', (data) => {
-  stopTimer();
-  timerContainer.classList.add('hidden');
-  
-  // Mensagem no chat
+  stopAllTimers();
+  maleStatus.textContent = '';
+  femaleStatus.textContent = '';
+
   addChatMessage({
     system: true,
-    text: `💦 ${data.name} GOZOU! (${data.time})`,
-    time: data.time
+    text: `💦 ${data.name} GOZOU! (${data.time})`
   });
-  
-  // Animação
+
   playCumAnimation(data.name);
 });
 
 function playCumAnimation(name) {
   cumText.textContent = `${name} GOZOU! 💦`;
   cumOverlay.classList.remove('hidden');
-  
-  // Restart animations by forcing reflow
+
   const streams = cumOverlay.querySelectorAll('.stream');
   const drops = cumOverlay.querySelectorAll('.drop');
   streams.forEach(el => {
@@ -259,14 +335,12 @@ function playCumAnimation(name) {
     void el.offsetWidth;
     el.style.animation = '';
   });
-  
-  // Hide after animation
+
   setTimeout(() => {
     cumOverlay.classList.add('hidden');
   }, 2800);
 }
 
-// Click on overlay to close early
 cumOverlay.addEventListener('click', () => {
   cumOverlay.classList.add('hidden');
 });

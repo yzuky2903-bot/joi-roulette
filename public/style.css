@@ -115,7 +115,7 @@ button {
 #game-screen {
   flex-direction: column;
   padding: 0;
-  max-width: 900px;
+  max-width: 920px;
   margin: 0 auto;
 }
 
@@ -152,13 +152,13 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .wheel-container {
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: 260px;
+  height: 260px;
 }
 
 .wheel {
@@ -168,16 +168,16 @@ main {
   background: conic-gradient(
     #ff6b9d 0deg 30deg,
     #c44dff 30deg 60deg,
-    #ff6b9d 60deg 90deg,
+    #4a90e2 60deg 90deg,
     #c44dff 90deg 120deg,
     #ff6b9d 120deg 150deg,
-    #c44dff 150deg 180deg,
+    #4a90e2 150deg 180deg,
     #ff6b9d 180deg 210deg,
     #c44dff 210deg 240deg,
-    #ff6b9d 240deg 270deg,
+    #4a90e2 240deg 270deg,
     #c44dff 270deg 300deg,
     #ff6b9d 300deg 330deg,
-    #c44dff 330deg 360deg
+    #4a90e2 330deg 360deg
   );
   border: 6px solid #fff;
   box-shadow: 0 0 30px rgba(255, 107, 157, 0.5);
@@ -190,15 +190,15 @@ main {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   background: #1a0a1f;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   border: 3px solid #ff6b9d;
   z-index: 2;
 }
@@ -225,19 +225,21 @@ main {
 }
 
 .spin-btn {
-  padding: 14px 28px;
-  font-size: 1.05rem;
-  min-width: 140px;
+  padding: 16px 36px;
+  font-size: 1.15rem;
+  min-width: 200px;
 }
 
-.spin-btn.male {
-  background: linear-gradient(90deg, #4a90e2, #357abd);
+.spin-btn.both {
+  background: linear-gradient(90deg, #4a90e2, #c44dff, #ff6b9d);
+  background-size: 200% 100%;
   color: white;
+  animation: gradientShift 3s ease infinite;
 }
 
-.spin-btn.female {
-  background: linear-gradient(90deg, #ff6b9d, #e05a8a);
-  color: white;
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .spin-btn:hover {
@@ -248,18 +250,44 @@ main {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  animation: none;
 }
 
-/* Resultado */
+/* Auto-spin toggle */
+.auto-spin-row {
+  margin-top: 4px;
+}
+
+.auto-spin-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #b8a0c8;
+  cursor: pointer;
+  user-select: none;
+}
+
+.auto-spin-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #c44dff;
+  cursor: pointer;
+}
+
+/* Resultado - dual cards */
 .result-box {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid #ff6b9d;
-  border-radius: 16px;
-  padding: 20px 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 107, 157, 0.5);
+  border-radius: 18px;
+  padding: 18px;
   text-align: center;
-  max-width: 420px;
+  max-width: 480px;
   width: 100%;
   animation: popIn 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 @keyframes popIn {
@@ -267,72 +295,78 @@ main {
   to { transform: scale(1); opacity: 1; }
 }
 
-.result-type {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #ff6b9d;
-  margin-bottom: 8px;
+.challenge-card {
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
 }
 
-.result-text {
-  font-size: 1.4rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 10px;
+.male-card {
+  background: rgba(74, 144, 226, 0.15);
+  border: 1px solid rgba(74, 144, 226, 0.45);
 }
 
-.result-by {
-  font-size: 0.85rem;
-  color: #b8a0c8;
-  margin-bottom: 16px;
+.female-card {
+  background: rgba(255, 107, 157, 0.15);
+  border: 1px solid rgba(255, 107, 157, 0.45);
 }
 
-/* ===== TIMER ===== */
-.timer-container {
-  margin: 12px 0 8px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 107, 157, 0.4);
-}
-
-.timer-label {
+.challenge-header {
   font-size: 0.8rem;
-  color: #b8a0c8;
-  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 1px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.male-card .challenge-header { color: #6bb0ff; }
+.female-card .challenge-header { color: #ff8ab5; }
+
+.challenge-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.timer-block {
+  margin-top: 4px;
 }
 
 .timer-display {
-  font-size: 2.4rem;
+  font-size: 1.8rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: #ff6b9d;
-  text-shadow: 0 0 20px rgba(255, 107, 157, 0.6);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   transition: color 0.3s;
 }
 
+.male-card .timer-display { color: #6bb0ff; }
+.female-card .timer-display { color: #ff8ab5; }
+
 .timer-display.warning {
-  color: #ffcc00;
+  color: #ffcc00 !important;
   animation: pulse 0.8s infinite;
 }
 
 .timer-display.danger {
-  color: #ff4444;
+  color: #ff4444 !important;
   animation: pulse 0.4s infinite;
+}
+
+.timer-display.done {
+  color: #4ade80 !important;
+  animation: none;
 }
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.85; }
+  50% { transform: scale(1.06); opacity: 0.85; }
 }
 
 .timer-bar-bg {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.15);
+  height: 7px;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -340,22 +374,47 @@ main {
 .timer-bar {
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #ff6b9d, #c44dff);
   border-radius: 4px;
-  transition: width 0.2s linear;
+  transition: width 0.15s linear;
+}
+
+.male-card .timer-bar {
+  background: linear-gradient(90deg, #4a90e2, #6bb0ff);
+}
+
+.female-card .timer-bar {
+  background: linear-gradient(90deg, #ff6b9d, #c44dff);
 }
 
 .timer-bar.warning {
-  background: linear-gradient(90deg, #ffcc00, #ff9900);
+  background: linear-gradient(90deg, #ffcc00, #ff9900) !important;
 }
 
 .timer-bar.danger {
-  background: linear-gradient(90deg, #ff4444, #cc0000);
+  background: linear-gradient(90deg, #ff4444, #cc0000) !important;
+}
+
+.timer-bar.done {
+  background: linear-gradient(90deg, #22c55e, #4ade80) !important;
+  width: 0% !important;
+}
+
+.side-status {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  color: #4ade80;
+  font-weight: 600;
+  min-height: 1.1em;
+}
+
+.result-by {
+  font-size: 0.85rem;
+  color: #b8a0c8;
+  text-align: center;
 }
 
 /* ===== CUM BUTTON ===== */
 .cum-btn {
-  margin-top: 14px;
   width: 100%;
   padding: 16px 24px;
   font-size: 1.25rem;
@@ -390,7 +449,7 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  height: 280px;
+  height: 260px;
   overflow: hidden;
 }
 
@@ -426,13 +485,8 @@ main {
   color: #ff6b9d;
 }
 
-.chat-msg.female .meta .name {
-  color: #ff6b9d;
-}
-
-.chat-msg.male .meta .name {
-  color: #4a90e2;
-}
+.chat-msg.female .meta .name { color: #ff6b9d; }
+.chat-msg.male .meta .name { color: #4a90e2; }
 
 .chat-msg.system {
   align-self: center;
@@ -466,7 +520,7 @@ main {
   background: #a33dd9;
 }
 
-/* ===== CUM ANIMATION OVERLAY (hentai 2D style) ===== */
+/* ===== CUM ANIMATION OVERLAY ===== */
 .cum-overlay {
   position: fixed;
   inset: 0;
@@ -493,7 +547,6 @@ main {
   justify-content: flex-end;
 }
 
-/* Penis */
 .penis-container {
   position: relative;
   z-index: 10;
@@ -570,7 +623,6 @@ main {
 .ball.left { transform: rotate(-8deg); }
 .ball.right { transform: rotate(8deg); }
 
-/* Cum streams */
 .cum-streams {
   position: absolute;
   top: 40px;
@@ -607,22 +659,11 @@ main {
 .stream.s7 { transform: translateX(-50%) rotate(35deg); animation-delay: 0.2s; width: 8px; }
 
 @keyframes squirt {
-  0% {
-    height: 0;
-    opacity: 1;
-  }
-  40% {
-    height: 160px;
-    opacity: 1;
-  }
-  100% {
-    height: 180px;
-    opacity: 0;
-    transform: translateX(-50%) translateY(-40px) scaleY(0.6);
-  }
+  0% { height: 0; opacity: 1; }
+  40% { height: 160px; opacity: 1; }
+  100% { height: 180px; opacity: 0; transform: translateX(-50%) translateY(-40px) scaleY(0.6); }
 }
 
-/* Cum drops that fall */
 .cum-drops {
   position: absolute;
   top: 0;
@@ -655,21 +696,11 @@ main {
 .drop.d5 { left: 65%; animation-delay: 0.7s; width: 11px; height: 14px; }
 
 @keyframes drip {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(0.5);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(10px) scale(1);
-  }
-  100% {
-    opacity: 0.6;
-    transform: translateY(220px) scale(0.8);
-  }
+  0% { opacity: 0; transform: translateY(0) scale(0.5); }
+  15% { opacity: 1; transform: translateY(10px) scale(1); }
+  100% { opacity: 0.6; transform: translateY(220px) scale(0.8); }
 }
 
-/* Text */
 .cum-text {
   position: absolute;
   top: 20px;
@@ -689,18 +720,9 @@ main {
 }
 
 @keyframes textPop {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.3) rotate(-8deg);
-  }
-  60% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.15) rotate(3deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1) rotate(0deg);
-  }
+  0% { opacity: 0; transform: translateX(-50%) scale(0.3) rotate(-8deg); }
+  60% { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(3deg); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1) rotate(0deg); }
 }
 
 /* Responsive */
@@ -716,20 +738,23 @@ main {
 
   .chat-section {
     width: 340px;
-    height: 520px;
+    height: 560px;
   }
 }
 
 @media (max-width: 400px) {
   .wheel-container {
-    width: 240px;
-    height: 240px;
+    width: 220px;
+    height: 220px;
   }
   .cum-scene {
     width: 280px;
     height: 380px;
   }
   .timer-display {
-    font-size: 2rem;
+    font-size: 1.5rem;
+  }
+  .challenge-text {
+    font-size: 1.05rem;
   }
 }
